@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+
+
+        /**
+         * 失去焦点校验用户名的函数
+         */
+        function checkCustName(){
+           //获取用户输入的用户名
+            var custName = $("[name=\"custName\"]").val();
+            var url = "/checkCustName";  //访问具体controller类的方法url地址
+            var params = {"custName":custName};
+
+            //获取消息提示框对象
+           var msgObj =  $("#nameMsg");
+
+
+          if(custName == null || custName == ""){
+              msgObj.html("客户名不能为空");
+          }else{
+            //发出ajax的异步查询
+            $.ajax({
+                type:"POST",
+               url:url,
+               data:params,
+               dataType:"json",
+               async:false,
+               success:function(data){
+                  if(data == 1){
+                      msgObj.html("您输入的客户名已存在，请重新输入");
+
+                  }else{
+                      msgObj.html("√");
+                   }
+               }
+
+            });
+
+          }
+
+        }
+        //前端网页一加载完成，显示所有等级
+        $(function(){
+            var url = "/findCustLeverList";
+            var params = null;
+
+            //获取等级下拉框对象
+          var $lever =   $("[name=\"custLevel\"]");
+            $.post(
+              url,
+              params,
+              function(data){
+                  $(data).each(function(index,dom){
+                      $lever.append("<option value='"+dom+"'>"+dom+"</option>");
+                  });
+              },
+              "json"
+
+
+            );
+
+
+
+        });
+        //页面载入事件，页面一加载完成，就显示省份列表的数据
+        $(function(){
+            //获取省份下拉框对象
+            var $pro = $("[name=\"province\"]");
+            var url = "/findAllProvinceInfo";
+            var params = null;
+            $.post(
+                url,
+                params,
+                function(pro){
+                    $(pro).each(function(index,dom){
+                        $pro.append("<option value='"+dom.provinceid+"'>"+dom.name+"</option>");
+                    });
+                },
+                "json"
+
+            );
+
+
+        });
+
+
+        function checkProvinceVal(obj){
+          var proid =   obj.value;
+
+          //获取省份信息
+           var provalue =  obj[proid-1].innerHTML;
+
+         //  alert(provalue);
+            //把省份信息设置到隐藏框中
+           $("[name=\"provinceName\"]").val(provalue);
+
+          var url = "selectCityByProid";
+          var params = {"pid":proid};
+
+          //获取city下拉框
+            var $cityObj = $("[name=\"city\"]");
+            //清空option选项
+            $cityObj.empty();
+          $.post(
+              url,
+              params,
+              function(cityObj){
+                var $city = $(cityObj);
+
+                  $city.each(function(index,dom){
+
+                      $cityObj.append("<option value='"+dom.name+"'>"+dom.name+"</option>");
+
+                  });
+              },
+              "json"
+
+          );
+
+        }
+
+
+
+
+    </script>
+</head>
+<body>
+<!--
+标识该form表单提交的数据包含了二进制流字节码的文件
+-->
+<form method="post" enctype="multipart/form-data" action="/addCustomerInfo">
+    <table width="60%" border="1px solid red">
+        <tr>
+            <td>添加</td>
+
+        </tr>
+        <tr>
+            <td>客户名称</td>
+            <td><input type="text" name="custName" onblur="checkCustName()">
+            <span id="nameMsg"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>客户来源</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>客户等级</td>
+            <td>
+                <select name="custLevel">
+
+              </select>
+            </td>
+        </tr>
+        <tr>
+            <td>所属联系人</td>
+            <td><input type="text" name=""></td>
+        </tr>
+        <tr>
+            <td>移动电话</td>
+            <td><input type="text" name=""></td>
+        </tr>
+        <tr>
+            <td>出生年月</td>
+            <td><input type="date" name=""></td>
+        </tr>
+        <tr>
+            <td>客户图像</td>
+            <td><input type="file" name="picFile">
+
+
+            </td>
+        </tr>
+        <tr>
+            <td>地址</td>
+            <td><select name="province" onchange="checkProvinceVal(this)">
+            </select>
+
+                市 <select name="city" >
+
+                </select>
+                <input type="hidden" name="provinceName">
+                <input type="text" name="addDeail"></td>
+        </tr>
+
+        <tr>
+            <td>提交</td>
+            <td><input type="submit"></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+
+    <!--引入bootStrap
+    2.导入bootstarp.css
+	3.导入jquery.js
+	4.导入bootstrap.js
+    -->
+
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+
+    <!--  PAGINATION plugin -->
+    <link rel="stylesheet" type="text/css" href="jquery/bs_pagination-master/css/jquery.bs_pagination.min.css">
+    <script type="text/javascript" src="jquery/bs_pagination-master/js/jquery.bs_pagination.min.js"></script>
+    <script type="text/javascript" src="jquery/bs_pagination-master/localization/en.js"></script>
+
+
+    <script type="text/javascript">
+
+        $(function(){
+            loadCustInfoByPage(1,5);
+        });
+
+
+        //前端网页一加载完成，显示所有等级
+        $(function(){
+            var url = "/findCustLeverList";
+            var params = null;
+
+            //获取等级下拉框对象
+            var $lever =   $("[name=\"custLevel\"]");
+            $.post(
+                url,
+                params,
+                function(data){
+                    $(data).each(function(index,dom){
+                        $lever.append("<option value='"+dom+"'>"+dom+"</option>");
+                    });
+                },
+                "json"
+
+            );
+
+        });
+
+        //毫秒转日期
+        function turnTime(ms){
+            var oDate = new Date(ms),
+                oYear = oDate.getFullYear(),
+                oMonth = oDate.getMonth()+1,
+                oDay = oDate.getDate(),
+                oHour = oDate.getHours(),
+                oMin = oDate.getMinutes(),
+                oSen = oDate.getSeconds(),
+                oTime = oYear +'-'+ getzf(oMonth) +'-'+ getzf(oDay) +' '+ getzf(oHour) +':'+ getzf(oMin) +':'+getzf(oSen);//最后拼接时间
+            return oTime;
+        }
+        //给时间补上零
+        function getzf(num){
+            if(parseInt(num) < 10){
+                num = '0'+num;
+            }
+            return num;
+        }
+
+
+        function checkDel(id){
+            var url = "/checkDelById/"+id+"";
+            var params = {"custId":id};
+           if(confirm("你确定要删除吗？")){
+
+               $.post(
+                   url,
+                   params,
+                   function(result){
+                       alert(result);
+
+                       location.href = "loadCustInfoByPage.html";
+
+                   },
+                   "json"
+
+
+               );
+
+           }
+
+        }
+
+       function  findCustById(id){
+            var url = "/findCustById/"+id+"";
+            var params = null;
+            $.post(
+                url,
+                params,
+                function(c){
+                  alert(c.custName);
+                  alert(c.custLevel);
+                },
+                "json"
+
+            );
+        }
+
+
+
+        function loadCustInfoByPage(page,pageSize){
+            //获取保存数据的额tbody标签对象
+           var $page =  $("#myPage");
+
+           //获取用户输入的值
+           var custName =  $("[name=\"custName\"]").val();
+
+           //获取会员等级下拉框的值
+          var lever =   $("[name=\"custLevel\"]").val();
+
+
+            $page.empty();  //清空上一页的数据
+           var url = "findCustInfoByPage";
+           var params = {"indexPage":page,"custName":custName,"lever":lever};
+           $.post(
+               url,
+               params,
+               function(data){
+                 var dataList =   data.list;
+
+                 $(dataList).each(function(index,dom){
+                     $page.append(" <tr>\n" +
+                         "                <td>"+(index+1)+"</td>\n" +
+                         "                <td>"+dom.custName+"</td>\n" +
+                         "                <td>"+dom.custSource+"</td>\n" +
+                         "                <td>"+dom.custLevel+"</td>\n" +
+                         "                <td>"+dom.custMobile+"</td>\n" +
+                         "                <td>"+turnTime(dom.custBirthday)+"</td>\n" +
+                         "                <td>"+dom.custAddress+"</td>\n" +
+                         "                <td><a href='/findCustById/"+dom.custId+"' >编辑</a>&nbsp;<a href='#' onclick='checkDel("+dom.custId+")'>删除</a></td>\n" +
+                         "            </tr>");
+
+                 });
+
+                   $("#myIndexPage").bs_pagination({
+                       currentPage: data.pageNum,//当前页 相当于pageNo
+                       rowsPerPage:5, // 每页显示的条数，相当于pageSize
+                       totalRows:data.total,//总条数 相当于totalRows
+                       totalPages: data.pages, //总页数 必填参数  要自己算
+                       visiblePageLinks:4, // 最多显示几个卡片数
+
+                       showGoToPage: false, //是否显示跳转到|->|
+                       showRowsPerPage: true,//是否显示每页显示条数
+                       showRowsInfo: false, //是否显示记录信息
+                       showRowsDefaultInfo: true,
+                       //每次返回切换页号后的pageNo和pageSize
+                       onChangePage : function(event,pageObj){ //用户切换页号的时候可以执行的js代码
+                           loadCustInfoByPage(pageObj.currentPage , pageObj.rowsPerPage);
+
+                       }
+                   });
+
+
+
+
+
+               },
+               "json"
+
+
+           );
+
+
+
+        }
+
+
+
+    </script>
+</head>
+<body>
+<div class="container-fluid">
+    <form method="post" action="">
+
+        <table  class="table table-bordered table-hover table-striped">
+            <tr>
+                <th>
+                    <input type="text" name="custName" placeholder="请输入查询的客户名"></th>
+                <th> <select name="custLevel"  >
+                    <option>客户等级</option>
+                </select></th>
+                <th><input type="button" onclick="loadCustInfoByPage(1,5)" value="搜素"></th>
+            </tr>
+            <tr>
+                <th>编号</th>
+                <th>客户姓名</th>
+                <th>客户来源</th>
+                <th>客户等级</th>
+                <th>联系方式</th>
+                <th>生日</th>
+                <th>地址</th>
+                <th>操作</th>
+            </tr>
+
+            <tbody id="myPage">
+
+            </tbody>
+
+
+
+
+
+        </table>
+
+
+    </form>
+
+        <div id="myIndexPage" align="center"></div>
+
+    <div><a href="/download?fileName=jquery-1.11.3.min.js">下载jquery-1.11.3.min.js</a></div>
+</div>
+
+</body>
+</html>

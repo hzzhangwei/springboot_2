@@ -119,7 +119,7 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public int addCustomerInfo(Customer c) {
-
+        System.out.println("c=="+c);
         int rows = customerMapper.insertSelective(c);
         return rows;
     }

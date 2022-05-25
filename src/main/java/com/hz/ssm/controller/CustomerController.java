@@ -49,7 +49,7 @@ public class CustomerController {
     @RequestMapping("/findCustInfoByPage")
     public PageInfo<Customer> findCustInfoByPage(Integer indexPage,String custName,String lever){
         System.out.println("custName=="+custName+",lever=="+lever);
-
+        System.out.println("=============================");
         PageInfo<Customer> pageInfo =  customerService.findCustInfoByPage(indexPage,custName,lever);
         return pageInfo;
     }
